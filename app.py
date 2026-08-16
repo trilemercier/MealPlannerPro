@@ -11,9 +11,8 @@ import os
 # ⚠️ REMPLACE CETTE LIGNE PAR L'ID DE TON FICHIER GOOGLE SHEETS :
 SHEET_ID = "13-YI0dvqNnVOD5t5MXc69rP1yvl0SHh3HdPgnRp1XAA" 
 
-@st.cache_data(ttl=60) # Garde en mémoire 60 secondes pour éviter de surcharger Google
+@st.cache_data(ttl=60)
 def charger_base_google(profil):
-    # Cette URL magique transforme l'onglet Google Sheets du profil en fichier CSV lisible
     url = f"https://docs.google.com/spreadsheets/d/{SHEET_ID}/gviz/tq?tqx=out:csv&sheet={profil}"
     db = defaultdict(dict)
     try:
@@ -21,7 +20,6 @@ def charger_base_google(profil):
         for _, row in df.iterrows():
             plat = str(row.iloc[0]).strip()
             ing = str(row.iloc[1]).strip()
-            # On remplace les éventuelles virgules par des points pour Python
             try:
                 qte = float(str(row.iloc[2]).replace(',', '.'))
             except ValueError:
@@ -29,7 +27,7 @@ def charger_base_google(profil):
             db[plat][ing] = qte
         return dict(db)
     except Exception as e:
-        return None # Si l'onglet n'existe pas ou est vide
+        return None
 
 # ==========================================
 # 2. BOÎTE À IDÉES & BUDGET
@@ -125,10 +123,10 @@ st.set_page_config(page_title="Meal Planner Pro", page_icon="🛒", layout="cent
 
 # --- SÉLECTEUR DE PROFIL ---
 st.sidebar.title("👤 Qui es-tu ?")
-profil_choisi = st.sidebar.selectbox("Choisis ton profil :", ["Tristan", "Anne", "Copine"])
+# J'AI MODIFIÉ CETTE LIGNE POUR GARDER UNIQUEMENT TON PROFIL :
+profil_choisi = st.sidebar.selectbox("Choisis ton profil :", ["Tristan"])
 st.sidebar.markdown("---")
 
-# Chargement de la base de données propre au profil depuis Google Sheets
 db_sheet = charger_base_google(profil_choisi)
 
 if 'profil_actuel' not in st.session_state or st.session_state.profil_actuel != profil_choisi:
