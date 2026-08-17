@@ -101,20 +101,35 @@ def get_categorie(ingredient):
     if any(i in ingredient for i in boulangerie): return "🥖 Boulangerie"
     return "🥫 Épicerie (Sec, Sauces & Divers)"
 
-# ==========================================
-# 3. GESTION DES SAUVEGARDES LOCALES
-# ==========================================
-SAVE_FILE = "mes_semaines.json"
-def charger_sauvegardes():
-    if os.path.exists(SAVE_FILE):
-        with open(SAVE_FILE, "r", encoding="utf-8") as f: return json.load(f)
-    return {}
-
-def sauvegarder_semaine(nom, data, profil):
+# --- ONGLET 3 : SAUVEGARDES ---
+with tab_save:
+    st.header("💾 Mes Semaines Types")
     saves = charger_sauvegardes()
-    if profil not in saves: saves[profil] = {}
-    saves[profil][nom] = data
-    with open(SAVE_FILE, "w", encoding="utf-8") as f: json.dump(saves, f, indent=4)
+    mes_saves = saves.get(profil_choisi, {})
+    
+    nom_sauvegarde = st.text_input("Nom de la semaine (ex: Semaine Classique)")
+    if st.button("Sauvegarder la planification actuelle"):
+        if nom_sauvegarde:
+            sauvegarder_semaine(nom_sauvegarde, choix_actuels, profil_choisi)
+            st.success(f"Semaine '{nom_sauvegarde}' sauvegardée pour {profil_choisi} !")
+            st.rerun()
+            
+    st.markdown("---")
+    st.subheader("Charger une semaine type")
+    
+    # 1. On crée la fonction qui s'exécutera AVANT le rechargement de la page
+    def appliquer_sauvegarde(donnees_sauvegardees):
+        for k, v in donnees_sauvegardees.items():
+            st.session_state[k] = v
+        st.toast("✅ Menu chargé avec succès ! Va dans l'onglet Planification pour le voir.")
+
+    if mes_saves:
+        choix_load = st.selectbox("Sélectionne une sauvegarde", list(mes_saves.keys()))
+        
+        # 2. On branche la fonction sur le clic du bouton
+        st.button("Charger ce menu", on_click=appliquer_sauvegarde, args=(mes_saves[choix_load],))
+    else:
+        st.write(f"Aucune sauvegarde pour {profil_choisi} pour le moment.")
 
 # ==========================================
 # 4. INTERFACE WEB 
