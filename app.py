@@ -9,7 +9,7 @@ import os
 # 1. CONNEXION GOOGLE SHEETS (Le Cerveau)
 # ==========================================
 # ⚠️ REMPLACE CETTE LIGNE PAR L'ID DE TON FICHIER GOOGLE SHEETS :
-SHEET_ID = "13-YI0dvqNnVOD5t5MXc69rP1yvl0SHh3HdPgnRp1XAA" 
+SHEET_ID = "TON_ID_DE_FICHIER_ICI" 
 
 @st.cache_data(ttl=60)
 def charger_base_google(profil):
@@ -101,35 +101,20 @@ def get_categorie(ingredient):
     if any(i in ingredient for i in boulangerie): return "🥖 Boulangerie"
     return "🥫 Épicerie (Sec, Sauces & Divers)"
 
-# --- ONGLET 3 : SAUVEGARDES ---
-with tab_save:
-    st.header("💾 Mes Semaines Types")
-    saves = charger_sauvegardes()
-    mes_saves = saves.get(profil_choisi, {})
-    
-    nom_sauvegarde = st.text_input("Nom de la semaine (ex: Semaine Classique)")
-    if st.button("Sauvegarder la planification actuelle"):
-        if nom_sauvegarde:
-            sauvegarder_semaine(nom_sauvegarde, choix_actuels, profil_choisi)
-            st.success(f"Semaine '{nom_sauvegarde}' sauvegardée pour {profil_choisi} !")
-            st.rerun()
-            
-    st.markdown("---")
-    st.subheader("Charger une semaine type")
-    
-    # 1. On crée la fonction qui s'exécutera AVANT le rechargement de la page
-    def appliquer_sauvegarde(donnees_sauvegardees):
-        for k, v in donnees_sauvegardees.items():
-            st.session_state[k] = v
-        st.toast("✅ Menu chargé avec succès ! Va dans l'onglet Planification pour le voir.")
+# ==========================================
+# 3. GESTION DES SAUVEGARDES LOCALES
+# ==========================================
+SAVE_FILE = "mes_semaines.json"
+def charger_sauvegardes():
+    if os.path.exists(SAVE_FILE):
+        with open(SAVE_FILE, "r", encoding="utf-8") as f: return json.load(f)
+    return {}
 
-    if mes_saves:
-        choix_load = st.selectbox("Sélectionne une sauvegarde", list(mes_saves.keys()))
-        
-        # 2. On branche la fonction sur le clic du bouton
-        st.button("Charger ce menu", on_click=appliquer_sauvegarde, args=(mes_saves[choix_load],))
-    else:
-        st.write(f"Aucune sauvegarde pour {profil_choisi} pour le moment.")
+def sauvegarder_semaine(nom, data, profil):
+    saves = charger_sauvegardes()
+    if profil not in saves: saves[profil] = {}
+    saves[profil][nom] = data
+    with open(SAVE_FILE, "w", encoding="utf-8") as f: json.dump(saves, f, indent=4)
 
 # ==========================================
 # 4. INTERFACE WEB 
@@ -295,11 +280,17 @@ with tab_save:
             
     st.markdown("---")
     st.subheader("Charger une semaine type")
+    
+    # 1. On crée la fonction qui s'exécutera AVANT le rechargement de la page
+    def appliquer_sauvegarde(donnees_sauvegardees):
+        for k, v in donnees_sauvegardees.items():
+            st.session_state[k] = v
+        st.toast("✅ Menu chargé avec succès ! Va dans l'onglet Planification pour le voir.")
+
     if mes_saves:
         choix_load = st.selectbox("Sélectionne une sauvegarde", list(mes_saves.keys()))
-        if st.button("Charger ce menu"):
-            for k, v in mes_saves[choix_load].items():
-                st.session_state[k] = v
-            st.success("Menu chargé ! Retourne dans l'onglet Planification.")
+        
+        # 2. On branche la fonction sur le clic du bouton
+        st.button("Charger ce menu", on_click=appliquer_sauvegarde, args=(mes_saves[choix_load],))
     else:
         st.write(f"Aucune sauvegarde pour {profil_choisi} pour le moment.")
