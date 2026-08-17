@@ -9,7 +9,7 @@ import os
 # 1. CONNEXION GOOGLE SHEETS (Le Cerveau)
 # ==========================================
 # ⚠️ REMPLACE CETTE LIGNE PAR L'ID DE TON FICHIER GOOGLE SHEETS :
-SHEET_ID = "TON_ID_DE_FICHIER_ICI" 
+SHEET_ID = "13-YI0dvqNnVOD5t5MXc69rP1yvl0SHh3HdPgnRp1XAA" 
 
 @st.cache_data(ttl=60)
 def charger_base_google(profil):
